@@ -1,4 +1,4 @@
-const base_url = "https://poll-app-hpf4.onrender.com";
+const base_url = poll-app-hpf4.onreader.com;
 
 function checkAuth(){
   if(!localStorage.getItem("user_id")){
@@ -52,63 +52,7 @@ function goToPoll(){window.location.href="/poll";}
 function goToVote(){window.location.href="/vote-page";}
 function goToResult(){window.location.href="/result";}
 
-// ---------- NOTIFICATIONS & FIREBASE ----------
 
-function initNotifications(){
-  Notification.requestPermission().then(permission => {
-    if(permission === "granted"){
-      
-      messaging.getToken({ 
-        vapidKey: "BIhMsucb3v8gurKdJa-Cv_K5s7xNnynIWicCuTmRPNRvx0V1M_YTkL6_vR4LH6a2scj7OBsvzhamF2eiQFavYlA" 
-      })
-      .then(token => {
-        if (token) {
-          console.log("FCM TOKEN:", token);
-          sendTokenToServer(token);
-        } else {
-          console.log("No registration token available.");
-        }
-      })
-      .catch(err => console.log("Token error:", err));
-    } else {
-      console.warn("Notification permission denied.");
-    }
-  });
-}
-
-function sendTokenToServer(token) {
-  const user_id = localStorage.getItem("user_id");
-  if(!user_id) return;
-
-  fetch(base_url + "/save-token", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      user_id: user_id,
-      token: token
-    })
-  })
-  .then(res => res.json())
-  .then(data => console.log("Token saved to server:", data))
-  .catch(err => console.error("Error saving token:", err));
-}
-
-
-function triggerPushBroadcast(pollTitle) {
-  fetch(base_url + "/send-notifications", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ 
-        title: "New Poll!", 
-        body: `Your friend started a poll: ${pollTitle}` 
-    })
-  })
-  .then(r => r.json())
-  .then(d => console.log("Broadcast status:", d))
-  .catch(e => console.error("Broadcast failed:", e));
-}
-
-// ---------- CREATE POLL ----------
 
 function createPoll(){
   const purpose=document.getElementById("purpose").value.trim();
@@ -127,17 +71,13 @@ function createPoll(){
   })
   .then(async res=>{
     const data = await res.json();
-
     if(!res.ok){
       alert(data.message || "Error");
       window.location.href="/dashboard";
       return;
     }
-
-    
-    triggerPushBroadcast(purpose);
-
-    alert("Poll created and notifications sent!");
+ 
+    alert("Poll created!");
     window.location.href="/dashboard";
   })
   .catch(()=>alert("Server error"));
