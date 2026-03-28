@@ -1,4 +1,4 @@
-const base_url = poll-app-hpf4.onreader.com;
+const base_url = "poll-app-hpf4.onreader.com";
 
 function checkAuth(){
   if(!localStorage.getItem("user_id")){
