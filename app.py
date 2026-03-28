@@ -145,6 +145,10 @@ def vote_page(): return render_template("vote.html")
 @app.route("/result")
 def result_page(): return render_template("result.html")
 
+@app.route('/firebase-messaging-sw.js')
+def serve_sw():
+    return app.send_static_file('firebase-messaging-sw.js')
+
 # ---------- AUTH API ----------
 
 @app.route("/signup-user", methods=["POST"])
