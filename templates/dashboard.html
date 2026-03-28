@@ -21,10 +21,11 @@ const messaging = firebase.messaging();
 
 
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register("{{ url_for('static', filename='firebase-messaging-sw.js') }}")
+ 
+  navigator.serviceWorker.register("/firebase-messaging-sw.js")
     .then((registration) => {
-      messaging.useServiceWorker(registration);
-      console.log("Service Worker registered successfully");
+      console.log("Service Worker registered successfully with scope:", registration.scope);
+      initNotifications(); 
     }).catch((err) => {
       console.error("Service Worker registration failed", err);
     });
