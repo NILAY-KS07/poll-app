@@ -12,6 +12,7 @@ CORS(app)
 
 DB_NAME = "poll.db"
 
+# --------- FIREBASE INITIALIZATION ---------
 
 service_account_info = os.environ.get('FIREBASE_CONFIG_JSON')
 
@@ -20,46 +21,44 @@ if service_account_info:
         cert_dict = json.loads(service_account_info)
         cred = credentials.Certificate(cert_dict)
         firebase_admin.initialize_app(cred)
-        print("Firebase initialized successfully via Environment Variable.")
+        print("Firebase initialized via Environment Variable.")
     except Exception as e:
         print(f"Firebase initialization error: {e}")
 else:
-
     try:
-        cred = credentials.Certificate("firebase-key.json")
-        firebase_admin.initialize_app(cred)
-        print("Firebase initialized via local firebase-key.json.")
-    except:
-        print("WARNING: No Firebase credentials found. Notifications will not work.")
+        if os.path.exists("firebase-key.json"):
+            cred = credentials.Certificate("firebase-key.json")
+            firebase_admin.initialize_app(cred)
+            print("Firebase initialized via local firebase-key.json.")
+        else:
+            print("WARNING: No Firebase credentials found.")
+    except Exception as e:
+        print(f"Firebase fallback error: {e}")
 
 # --------- NOTIFICATION LOGIC ---------
 
 def send_notification(title, body):
-
-    db = sqlite3.connect(DB_NAME)
-    cursor = db.cursor()
-    
-
-    cursor.execute("SELECT DISTINCT token FROM tokens")
-    rows = cursor.fetchall()
-    db.close()
-
-    tokens = [row[0] for row in rows if row[0]]
-    
-    if not tokens:
-        print("Notification skipped: No tokens in database.")
-        return
-
-
-    message = messaging.MulticastMessage(
-        notification=messaging.Notification(
-            title=title,
-            body=body,
-        ),
-        tokens=tokens,
-    )
-    
     try:
+        db = sqlite3.connect(DB_NAME)
+        cursor = db.cursor()
+        cursor.execute("SELECT DISTINCT token FROM tokens")
+        rows = cursor.fetchall()
+        db.close()
+
+        tokens = [row[0] for row in rows if row[0]]
+        
+        if not tokens:
+            print("Notification skipped: No tokens in database.")
+            return
+
+        message = messaging.MulticastMessage(
+            notification=messaging.Notification(
+                title=title,
+                body=body,
+            ),
+            tokens=tokens,
+        )
+        
         response = messaging.send_multicast(message)
         print(f"Successfully sent {response.success_count} notifications.")
     except Exception as e:
@@ -114,6 +113,7 @@ def init_db():
     )""")
     db.commit()
     db.close()
+    print("Database initialized.")
 
 def expire_polls():
     db = get_db()
@@ -154,28 +154,30 @@ def serve_sw():
 @app.route("/signup-user", methods=["POST"])
 def signup_user():
     data = request.json
-    name, password = data.get("name","").strip(), data.get("password","").strip()
+    name = data.get("name","").strip()
+    password = data.get("password","").strip()
     if not name or not password:
-        return jsonify({"error":"All fields required"}),400
+        return jsonify({"error":"All fields required"}), 400
     db = get_db()
     cursor = db.cursor()
     try:
-        cursor.execute("INSERT INTO users (name,password) VALUES (?,?)", (name,password))
+        cursor.execute("INSERT INTO users (name,password) VALUES (?,?)", (name, password))
         db.commit()
         return jsonify({"message":"Signup success"})
     except sqlite3.IntegrityError:
-        return jsonify({"error":"User exists"}),400
+        return jsonify({"error":"User exists"}), 400
 
 @app.route("/login", methods=["POST"])
 def login():
     data = request.json
-    name, password = data.get("name","").strip(), data.get("password","").strip()
+    name = data.get("name","").strip()
+    password = data.get("password","").strip()
     db = get_db()
     cursor = db.cursor()
-    cursor.execute("SELECT id,password FROM users WHERE name=?", (name,))
+    cursor.execute("SELECT id, password FROM users WHERE name=?", (name,))
     user = cursor.fetchone()
     if not user or user["password"] != password:
-        return jsonify({"error":"Invalid credentials"}),401
+        return jsonify({"error":"Invalid credentials"}), 401
     return jsonify({"user_id": user["id"]})
 
 # ---------- POLL API ----------
@@ -184,25 +186,27 @@ def login():
 def create_poll():
     expire_polls() 
     data = request.json
-    purpose, venue, description = data.get("purpose","").strip(), data.get("venue","").strip(), data.get("description","").strip()
+    purpose = data.get("purpose","").strip()
+    venue = data.get("venue","").strip()
+    description = data.get("description","").strip()
 
     if not purpose or not venue or not description:
-        return jsonify({"error":"All fields required"}),400
+        return jsonify({"error":"All fields required"}), 400
 
     db = get_db()
     cursor = db.cursor()
     cursor.execute("SELECT * FROM polls WHERE status='active' LIMIT 1")
     if cursor.fetchone():
-        return jsonify({"message":"A poll is already active!"}),400
+        return jsonify({"message":"A poll is already active!"}), 400
 
-    now = datetime.now()
-    expiry = now + timedelta(hours=24)
+    now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    expiry = (datetime.now() + timedelta(hours=24)).strftime('%Y-%m-%d %H:%M:%S')
+    
     cursor.execute("""
-    INSERT INTO polls (purpose,venue,description,created_at,expires_at,status)
-    VALUES (?,?,?,?,?,'active')
-    """,(purpose,venue,description,now,expiry))
+    INSERT INTO polls (purpose, venue, description, created_at, expires_at, status)
+    VALUES (?, ?, ?, ?, ?, 'active')
+    """, (purpose, venue, description, now, expiry))
     db.commit()
-
 
     send_notification("New Poll Live!", f"{purpose} at {venue}")
 
@@ -221,12 +225,19 @@ def active_poll():
 def vote():
     expire_polls() 
     data = request.json
-    poll_id, user_id, resp, reason = data.get("poll_id"), data.get("user_id"), data.get("response"), data.get("reason","").strip()
+    poll_id = data.get("poll_id")
+    user_id = data.get("user_id")
+    resp = data.get("response")
+    reason = data.get("reason","").strip()
+    
     db = get_db()
     cursor = db.cursor()
-    cursor.execute("SELECT * FROM votes WHERE poll_id=? AND user_id=?", (poll_id,user_id))
-    if cursor.fetchone(): return jsonify({"error":"Already voted"}),400
-    cursor.execute("INSERT INTO votes (poll_id,user_id,response,reason) VALUES (?,?,?,?)",(poll_id,user_id,resp,reason))
+    cursor.execute("SELECT * FROM votes WHERE poll_id=? AND user_id=?", (poll_id, user_id))
+    if cursor.fetchone():
+        return jsonify({"error":"Already voted"}), 400
+        
+    cursor.execute("INSERT INTO votes (poll_id, user_id, response, reason) VALUES (?, ?, ?, ?)", 
+                   (poll_id, user_id, resp, reason))
     db.commit()
     return jsonify({"message":"Vote submitted"})
 
@@ -234,7 +245,12 @@ def vote():
 def results(poll_id):
     db = get_db()
     cursor = db.cursor()
-    cursor.execute("SELECT users.name, votes.response, votes.reason FROM votes JOIN users ON votes.user_id=users.id WHERE poll_id=?",(poll_id,))
+    cursor.execute("""
+        SELECT users.name, votes.response, votes.reason 
+        FROM votes 
+        JOIN users ON votes.user_id = users.id 
+        WHERE poll_id = ?
+    """, (poll_id,))
     return jsonify([dict(row) for row in cursor.fetchall()])
 
 # ---------- NOTIFICATION TOKEN API ----------
@@ -247,8 +263,7 @@ def save_token():
         token = data.get("token")
 
         if not user_id or not token:
-            print("Save-token error: Missing user_id or token")
-            return jsonify({"error": "Missing data"}), 400
+            return jsonify({"error": "Missing user_id or token"}), 400
 
         db = get_db()
         cursor = db.cursor()
@@ -259,8 +274,8 @@ def save_token():
         """, (user_id, token))
         
         db.commit()
-        print(f"Token saved successfully for user {user_id}")
-        return jsonify({"success": True, "message": "Notifications enabled!"})
+        print(f"Token saved for user {user_id}")
+        return jsonify({"success": True})
     
     except Exception as e:
         print(f"Database Error in save_token: {e}")
