@@ -17,7 +17,7 @@ def send_notification(title, body):
     cursor.execute("SELECT token FROM tokens")
     rows = cursor.fetchall()
 
-    tokens = [row["token"] for row in rows if row["token"]]
+    tokens = [row[0] for row in rows if row[0]]
 
     for token in tokens:
         try:
@@ -30,7 +30,7 @@ def send_notification(title, body):
             )
             messaging.send(message)
         except Exception as e:
-            print("Notification error:", e)
+            print("Notification error for token", token, ":", e)
 
 app = Flask(__name__)
 CORS(app)
