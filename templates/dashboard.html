@@ -20,77 +20,75 @@
             measurementId: "G-W39CZ4Y67E"
         };
 
-
         firebase.initializeApp(firebaseConfig);
         const messaging = firebase.messaging();
 
 
+        function sendTokenToServer(token) {
+            const user_id = localStorage.getItem("user_id");
+            if(!user_id || user_id === "null") return;
+
+            console.log("Saving token for user:", user_id);
+            fetch("/save-token", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    user_id: user_id,
+                    token: token
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                console.log("Server response:", data);
+                if(data.success) {
+                    document.getElementById("status-msg").innerText = "Notifications Enabled! 🔔";
+                }
+            })
+            .catch(err => console.error("Error saving token:", err));
+        }
+
         function initNotifications() {
             const userId = localStorage.getItem("user_id");
-            if (!userId || userId === "null") {
-                console.log("Notification setup skipped: User not logged in.");
-                return;
-            }
+            if (!userId || userId === "null") return;
 
             Notification.requestPermission().then((permission) => {
                 if (permission === 'granted') {
-                    console.log('Notification permission granted.');
-
-
+                    console.log('Permission granted. Getting token...');
                     messaging.getToken({ 
                         vapidKey: 'BIhMsucb3v8gurKdJa-Cv_K5s7xNnynIWicCuTmRPNRvx0V1M_YTkL6_vR4LH6a2scj7OBsvzhamF2eiQFavYlA' 
                     })
                     .then((currentToken) => {
                         if (currentToken) {
-                            console.log("Token generated:", currentToken);
-                            
-
-                            if (typeof sendTokenToServer === "function") {
-                                sendTokenToServer(currentToken);
-                            } else {
-                                console.error("Error: sendTokenToServer function not found in script.js");
-                            }
-                        } else {
-                            console.log('No registration token available.');
+                            sendTokenToServer(currentToken);
                         }
-                    }).catch((err) => {
-                        console.log('An error occurred while retrieving token: ', err);
-                    });
-                } else {
-                    console.warn("Notification permission denied by user.");
+                    }).catch((err) => console.log('Token Error:', err));
                 }
             });
         }
 
+
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register("/firebase-messaging-sw.js")
                 .then((registration) => {
-                    console.log("Service Worker registered. Scope:", registration.scope);
-
+                    console.log("SW Registered.");
                     initNotifications(); 
-                }).catch((err) => {
-                    console.error("Service Worker registration failed:", err);
-                });
+                }).catch((err) => console.error("SW Registration Failed:", err));
         }
     </script>
 </head>
 <body>
     <div class="container">
         <h2>Dashboard</h2>
-        
         <div class="button-group">
             <button onclick="goToPoll()">Start Poll</button>
             <button onclick="goToVote()">Vote</button>
             <button onclick="goToResult()">Results</button>
         </div>
-        
-        <p id="status-msg" style="font-size: 0.8em; color: gray; margin-top: 20px;"></p>
+        <p id="status-msg" style="font-size: 0.8em; color: #4CAF50; margin-top: 20px;"></p>
     </div>
-
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
     <script>
-
         if (typeof checkAuth === "function") {
             checkAuth();
         }
