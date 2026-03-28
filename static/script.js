@@ -1,4 +1,4 @@
-const base_url = "";
+const base_url = "https://poll-app-hpf4.onrender.com";
 
 function checkAuth(){
   if(!localStorage.getItem("user_id")){
