@@ -1,3 +1,5 @@
+const base_url = "";
+
 function checkAuth(){
   if(!localStorage.getItem("user_id")){
     alert("Login required");
@@ -11,7 +13,7 @@ function login(){
 
   if(!name||!password){alert("All fields required");return;}
 
-  fetch("/login",{method:"POST",headers:{"Content-Type":"application/json"},
+  fetch(base_url+"/login",{method:"POST",headers:{"Content-Type":"application/json"},
   body:JSON.stringify({name,password})})
   .then(r=>r.json())
   .then(d=>{
@@ -25,7 +27,7 @@ function signup(){
   const name=document.getElementById("name").value.trim();
   const password=document.getElementById("password").value.trim();
 
-  fetch("/signup-user",{method:"POST",headers:{"Content-Type":"application/json"},
+  fetch(base_url+"/signup-user",{method:"POST",headers:{"Content-Type":"application/json"},
   body:JSON.stringify({name,password})})
   .then(r=>r.json())
   .then(d=>{
@@ -45,7 +47,7 @@ function createPoll(){
 
   if(!purpose||!venue||!description){alert("All fields required");return;}
 
-  fetch("/create-poll",{method:"POST",headers:{"Content-Type":"application/json"},
+  fetch(base_url+"/create-poll",{method:"POST",headers:{"Content-Type":"application/json"},
   body:JSON.stringify({purpose,venue,description})})
   .then(async res => {const data = await res.json(); 
   
@@ -56,7 +58,7 @@ function createPoll(){
 let currentPoll=null;
 
 function loadPoll(){
-  fetch("/active-poll")
+  fetch(base_url+"/active-poll")
   .then(r=>r.json())
   .then(p=>{
     if(!p){alert("No active poll");window.location.href="/dashboard";return;}
@@ -73,7 +75,7 @@ function vote(type){
     if(!reason){alert("Required");return;}
   }
 
-  fetch("/vote",{method:"POST",headers:{"Content-Type":"application/json"},
+  fetch(base_url+"/vote",{method:"POST",headers:{"Content-Type":"application/json"},
   body:JSON.stringify({
     poll_id:currentPoll.id,
     user_id:localStorage.getItem("user_id"),
