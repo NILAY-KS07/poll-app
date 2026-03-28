@@ -7,21 +7,11 @@
 <body>
 <div class="container">
 <h2>Results</h2><br>
-<div id='plist'></div>
+<div id='results'></div>
 <script src="{{ url_for('static', filename='script.js') }}"></script>
 <script>
 checkAuth();
-fetch("/active-poll")
-.then(r=>r.json())
-.then(p=>{
- fetch("/results/"+p.id)
- .then(r=>r.json())
- .then(d=>{
-  d.forEach(x=>{
-    document.getElementById('plist').innerHTML+=x[0]+" "+x[1]+" "+(x[2]||"")+"<br>";
-  });
- });
-});
+loadResults();
 </script>
 </div>
 </body>
