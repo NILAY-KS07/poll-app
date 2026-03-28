@@ -1,9 +1,19 @@
 self.addEventListener('push', function(event) {
   if (event.data) {
-    const data = event.data.json();
+    let payload;
+    try {
+      payload = event.data.json();
+    } catch (e) {
+      console.warn("Push message was not valid JSON, treating as plain text:", e);
+      payload = {
+        title: "Notification", 
+        body: event.data.text()
+      };
+    }
+
     const options = {
-      body: data.body,
-      icon: 'https://cdn-icons-png.flaticon.com/512/5968/5968756.png', // Using a web icon for testing
+      body: payload.body,
+      icon: 'https://cdn-icons-png.flaticon.com/512/5968/5968756.png', 
       vibrate: [100, 50, 100],
       data: {
         dateOfArrival: Date.now(),
@@ -11,7 +21,7 @@ self.addEventListener('push', function(event) {
       }
     };
     event.waitUntil(
-      self.registration.showNotification(data.title, options)
+      self.registration.showNotification(payload.title, options)
     );
   }
 });
