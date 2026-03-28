@@ -61,6 +61,20 @@ def init_db():
     db.commit()
     db.close()
 
+# ---------- AUTO EXPIRE FUNCTION ----------
+
+def expire_polls():
+    db = get_db()
+    cursor = db.cursor()
+
+    cursor.execute("""
+    UPDATE polls 
+    SET status='ended'
+    WHERE expires_at <= datetime('now') AND status='active'
+    """)
+
+    db.commit()
+
 # ---------- PAGE ROUTES ----------
 
 @app.route("/")
@@ -134,8 +148,9 @@ def login():
 
 @app.route("/create-poll", methods=["POST"])
 def create_poll():
-    data = request.json
+    expire_polls()  # 🔥 always clean old polls first
 
+    data = request.json
     purpose = data.get("purpose","").strip()
     venue = data.get("venue","").strip()
     description = data.get("description","").strip()
@@ -146,23 +161,16 @@ def create_poll():
     db = get_db()
     cursor = db.cursor()
 
-
+    # check active poll globally
     cursor.execute("""
     SELECT * FROM polls 
-    WHERE status='active' AND expires_at > datetime('now') 
+    WHERE status='active' AND expires_at > datetime('now')
     LIMIT 1
     """)
     poll = cursor.fetchone()
 
     if poll:
         return jsonify({"message":"A poll is already going on"}),400
-
-
-    cursor.execute("""
-    UPDATE polls 
-    SET status='ended' 
-    WHERE expires_at <= datetime('now') AND status='active'
-    """)
 
     now = datetime.now()
     expiry = now + timedelta(hours=24)
@@ -178,18 +186,25 @@ def create_poll():
 
 @app.route("/active-poll")
 def active_poll():
+    expire_polls()  # 🔥 ensures correct state every time
+
     db = get_db()
     cursor = db.cursor()
 
-    cursor.execute("SELECT * FROM polls WHERE status='active' LIMIT 1")
+    cursor.execute("""
+    SELECT * FROM polls 
+    WHERE status='active' AND expires_at > datetime('now')
+    LIMIT 1
+    """)
     poll = cursor.fetchone()
 
     return jsonify(dict(poll) if poll else {})
 
 @app.route("/vote", methods=["POST"])
 def vote():
-    data = request.json
+    expire_polls()  # optional but safe
 
+    data = request.json
     poll_id = data.get("poll_id")
     user_id = data.get("user_id")
     response = data.get("response")
