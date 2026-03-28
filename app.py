@@ -148,7 +148,7 @@ def login():
 
 @app.route("/create-poll", methods=["POST"])
 def create_poll():
-    expire_polls()  # 🔥 always clean old polls first
+    expire_polls() 
 
     data = request.json
     purpose = data.get("purpose","").strip()
@@ -186,7 +186,7 @@ def create_poll():
 
 @app.route("/active-poll")
 def active_poll():
-    expire_polls()  # 🔥 ensures correct state every time
+    expire_polls() 
 
     db = get_db()
     cursor = db.cursor()
@@ -202,7 +202,7 @@ def active_poll():
 
 @app.route("/vote", methods=["POST"])
 def vote():
-    expire_polls()  # optional but safe
+    expire_polls() 
 
     data = request.json
     poll_id = data.get("poll_id")
