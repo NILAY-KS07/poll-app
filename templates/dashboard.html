@@ -1,73 +1,99 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
-<script>
-const firebaseConfig = {
-  apiKey: "AIzaSyAoAti_pMh-keTxz3-UCYt3LrOljkvp9to",
-  authDomain: "poll-app-bfe92.firebaseapp.com",
-  projectId: "poll-app-bfe92",
-  storageBucket: "poll-app-bfe92.firebasestorage.app",
-  messagingSenderId: "1041150842496",
-  appId: "1:1041150842496:web:c430f58cbd82ddf4d23865",
-  measurementId: "G-W39CZ4Y67E"
-};
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Poll App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
+    
+    <script>
 
-firebase.initializeApp(firebaseConfig);
-const messaging = firebase.messaging();
+        const firebaseConfig = {
+            apiKey: "AIzaSyAoAti_pMh-keTxz3-UCYt3LrOljkvp9to",
+            authDomain: "poll-app-bfe92.firebaseapp.com",
+            projectId: "poll-app-bfe92",
+            storageBucket: "poll-app-bfe92.firebasestorage.app",
+            messagingSenderId: "1041150842496",
+            appId: "1:1041150842496:web:c430f58cbd82ddf4d23865",
+            measurementId: "G-W39CZ4Y67E"
+        };
 
 
-if ('serviceWorker' in navigator) {
- 
-  navigator.serviceWorker.register("/firebase-messaging-sw.js")
-    .then((registration) => {
-      console.log("Service Worker registered successfully with scope:", registration.scope);
-      initNotifications(); 
-    }).catch((err) => {
-      console.error("Service Worker registration failed", err);
-    });
-}
+        firebase.initializeApp(firebaseConfig);
+        const messaging = firebase.messaging();
 
-function initNotifications() {
-  Notification.requestPermission().then((permission) => {
-    if (permission === 'granted') {
-      console.log('Notification permission granted.');
-      
 
-      messaging.getToken({ vapidKey: 'BIhMsucb3v8gurKdJa-Cv_K5s7xNnynIWicCuTmRPNRvx0V1M_YTkL6_vR4LH6a2scj7OBsvzhamF2eiQFavYlA' })
-        .then((currentToken) => {
-          if (currentToken) {
-            console.log("Token generated:", currentToken);
+        function initNotifications() {
+            const userId = localStorage.getItem("user_id");
+            if (!userId || userId === "null") {
+                console.log("Notification setup skipped: User not logged in.");
+                return;
+            }
 
-            sendTokenToServer(currentToken);
-          } else {
-            console.log('No registration token available. Request permission to generate one.');
-          }
-        }).catch((err) => {
-          console.log('An error occurred while retrieving token. ', err);
-        });
-    }
-  });
-}
-</script>
-</script>
+            Notification.requestPermission().then((permission) => {
+                if (permission === 'granted') {
+                    console.log('Notification permission granted.');
+
+
+                    messaging.getToken({ 
+                        vapidKey: 'BIhMsucb3v8gurKdJa-Cv_K5s7xNnynIWicCuTmRPNRvx0V1M_YTkL6_vR4LH6a2scj7OBsvzhamF2eiQFavYlA' 
+                    })
+                    .then((currentToken) => {
+                        if (currentToken) {
+                            console.log("Token generated:", currentToken);
+                            
+
+                            if (typeof sendTokenToServer === "function") {
+                                sendTokenToServer(currentToken);
+                            } else {
+                                console.error("Error: sendTokenToServer function not found in script.js");
+                            }
+                        } else {
+                            console.log('No registration token available.');
+                        }
+                    }).catch((err) => {
+                        console.log('An error occurred while retrieving token: ', err);
+                    });
+                } else {
+                    console.warn("Notification permission denied by user.");
+                }
+            });
+        }
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register("/firebase-messaging-sw.js")
+                .then((registration) => {
+                    console.log("Service Worker registered. Scope:", registration.scope);
+
+                    initNotifications(); 
+                }).catch((err) => {
+                    console.error("Service Worker registration failed:", err);
+                });
+        }
+    </script>
 </head>
 <body>
-<div class="container">
-<h2>Dashboard</h2>
-<script src="{{ url_for('static', filename='script.js') }}"></script>
-<script>checkAuth();</script>
-<button onclick="goToPoll()">Start Poll</button>
-<button onclick="goToVote()">Vote</button>
-<button onclick="goToResult()">Results</button>
-</div>
-<script>
-  if(localStorage.getItem("user_id")){
-    initNotifications();
-  }
-</script>
+    <div class="container">
+        <h2>Dashboard</h2>
+        
+        <div class="button-group">
+            <button onclick="goToPoll()">Start Poll</button>
+            <button onclick="goToVote()">Vote</button>
+            <button onclick="goToResult()">Results</button>
+        </div>
+        
+        <p id="status-msg" style="font-size: 0.8em; color: gray; margin-top: 20px;"></p>
+    </div>
+
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+
+        if (typeof checkAuth === "function") {
+            checkAuth();
+        }
+    </script>
 </body>
 </html>
