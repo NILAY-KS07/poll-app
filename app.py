@@ -241,17 +241,30 @@ def results(poll_id):
 
 @app.route("/save-token", methods=["POST"])
 def save_token():
-    data = request.json
-    user_id = data.get("user_id")
-    token = data.get("token")
-    if not user_id or not token:
-        return jsonify({"error":"Missing data"}),400
-    db = get_db()
-    cursor = db.cursor()
+    try:
+        data = request.json
+        user_id = data.get("user_id")
+        token = data.get("token")
 
-    cursor.execute("INSERT OR REPLACE INTO tokens (user_id, token) VALUES (?,?)",(user_id,token))
-    db.commit()
-    return jsonify({"message":"Notifications enabled!"})
+        if not user_id or not token:
+            print("Save-token error: Missing user_id or token")
+            return jsonify({"error": "Missing data"}), 400
+
+        db = get_db()
+        cursor = db.cursor()
+        
+        cursor.execute("""
+            INSERT OR REPLACE INTO tokens (user_id, token) 
+            VALUES (?, ?)
+        """, (user_id, token))
+        
+        db.commit()
+        print(f"Token saved successfully for user {user_id}")
+        return jsonify({"success": True, "message": "Notifications enabled!"})
+    
+    except Exception as e:
+        print(f"Database Error in save_token: {e}")
+        return jsonify({"error": "Internal server error"}), 500
 
 if __name__ == "__main__":
     init_db()
