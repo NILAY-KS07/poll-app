@@ -1,25 +1,44 @@
+import os
+import json
+import sqlite3
 from flask import Flask, request, jsonify, render_template, g
 from flask_cors import CORS
-import sqlite3
 from datetime import datetime, timedelta
 import firebase_admin
 from firebase_admin import credentials, messaging
-import os
-
-cred = credentials.Certificate("firebase-key.json")
-firebase_admin.initialize_app(cred)
 
 app = Flask(__name__)
 CORS(app)
 
 DB_NAME = "poll.db"
 
-# ---------Notification Logic--------
+
+service_account_info = os.environ.get('FIREBASE_CONFIG_JSON')
+
+if service_account_info:
+    try:
+        cert_dict = json.loads(service_account_info)
+        cred = credentials.Certificate(cert_dict)
+        firebase_admin.initialize_app(cred)
+        print("Firebase initialized successfully via Environment Variable.")
+    except Exception as e:
+        print(f"Firebase initialization error: {e}")
+else:
+
+    try:
+        cred = credentials.Certificate("firebase-key.json")
+        firebase_admin.initialize_app(cred)
+        print("Firebase initialized via local firebase-key.json.")
+    except:
+        print("WARNING: No Firebase credentials found. Notifications will not work.")
+
+# --------- NOTIFICATION LOGIC ---------
 
 def send_notification(title, body):
 
     db = sqlite3.connect(DB_NAME)
     cursor = db.cursor()
+    
 
     cursor.execute("SELECT DISTINCT token FROM tokens")
     rows = cursor.fetchall()
@@ -28,10 +47,10 @@ def send_notification(title, body):
     tokens = [row[0] for row in rows if row[0]]
     
     if not tokens:
-        print("No tokens found in database.")
+        print("Notification skipped: No tokens in database.")
         return
 
- 
+
     message = messaging.MulticastMessage(
         notification=messaging.Notification(
             title=title,
@@ -44,9 +63,9 @@ def send_notification(title, body):
         response = messaging.send_multicast(message)
         print(f"Successfully sent {response.success_count} notifications.")
     except Exception as e:
-        print("Global Notification Error:", e)
+        print(f"FCM Error: {e}")
 
-# ---------- DB CONNECTION ----------
+# ---------- DATABASE HELPERS ----------
 
 def get_db():
     if 'db' not in g:
@@ -60,8 +79,6 @@ def close_db(exception):
     if db is not None:
         db.close()
 
-# ---------- INIT DB ----------
-
 def init_db():
     db = sqlite3.connect(DB_NAME)
     cursor = db.cursor()
@@ -70,8 +87,7 @@ def init_db():
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT UNIQUE,
         password TEXT
-    )
-    """)
+    )""")
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS polls (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -81,8 +97,7 @@ def init_db():
         created_at TEXT,
         expires_at TEXT,
         status TEXT
-    )
-    """)
+    )""")
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS votes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -90,15 +105,13 @@ def init_db():
         user_id INTEGER,
         response TEXT,
         reason TEXT
-    )
-    """)
+    )""")
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS tokens (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER,
         token TEXT UNIQUE
-    )
-    """)
+    )""")
     db.commit()
     db.close()
 
@@ -113,6 +126,7 @@ def expire_polls():
     db.commit()
 
 # ---------- PAGE ROUTES ----------
+
 @app.route("/")
 def index(): return render_template("index.html")
 
@@ -129,33 +143,29 @@ def poll_page(): return render_template("poll.html")
 def vote_page(): return render_template("vote.html")
 
 @app.route("/result")
-def result(): return render_template("result.html")
+def result_page(): return render_template("result.html")
 
-# ---------- AUTH ----------
+# ---------- AUTH API ----------
 
 @app.route("/signup-user", methods=["POST"])
 def signup_user():
     data = request.json
-    name = data.get("name","").strip()
-    password = data.get("password","").strip()
+    name, password = data.get("name","").strip(), data.get("password","").strip()
     if not name or not password:
         return jsonify({"error":"All fields required"}),400
     db = get_db()
     cursor = db.cursor()
-    cursor.execute("SELECT * FROM users WHERE name=?", (name,))
-    if cursor.fetchone():
+    try:
+        cursor.execute("INSERT INTO users (name,password) VALUES (?,?)", (name,password))
+        db.commit()
+        return jsonify({"message":"Signup success"})
+    except sqlite3.IntegrityError:
         return jsonify({"error":"User exists"}),400
-    cursor.execute("INSERT INTO users (name,password) VALUES (?,?)", (name,password))
-    db.commit()
-    return jsonify({"message":"Signup success"})
 
 @app.route("/login", methods=["POST"])
 def login():
     data = request.json
-    name = data.get("name","").strip()
-    password = data.get("password","").strip()
-    if not name or not password:
-        return jsonify({"error":"All fields required"}),400
+    name, password = data.get("name","").strip(), data.get("password","").strip()
     db = get_db()
     cursor = db.cursor()
     cursor.execute("SELECT id,password FROM users WHERE name=?", (name,))
@@ -164,15 +174,13 @@ def login():
         return jsonify({"error":"Invalid credentials"}),401
     return jsonify({"user_id": user["id"]})
 
-# ---------- POLL ----------
+# ---------- POLL API ----------
 
 @app.route("/create-poll", methods=["POST"])
 def create_poll():
     expire_polls() 
     data = request.json
-    purpose = data.get("purpose","").strip()
-    venue = data.get("venue","").strip()
-    description = data.get("description","").strip()
+    purpose, venue, description = data.get("purpose","").strip(), data.get("venue","").strip(), data.get("description","").strip()
 
     if not purpose or not venue or not description:
         return jsonify({"error":"All fields required"}),400
@@ -181,7 +189,7 @@ def create_poll():
     cursor = db.cursor()
     cursor.execute("SELECT * FROM polls WHERE status='active' LIMIT 1")
     if cursor.fetchone():
-        return jsonify({"message":"A poll is already going on"}),400
+        return jsonify({"message":"A poll is already active!"}),400
 
     now = datetime.now()
     expiry = now + timedelta(hours=24)
@@ -192,9 +200,9 @@ def create_poll():
     db.commit()
 
 
-    send_notification("New Poll Live!", f"Topic: {purpose} at {venue}")
+    send_notification("New Poll Live!", f"{purpose} at {venue}")
 
-    return jsonify({"message":"Poll created and friends notified!"})
+    return jsonify({"message":"Poll Created!"})
 
 @app.route("/active-poll")
 def active_poll():
@@ -209,14 +217,12 @@ def active_poll():
 def vote():
     expire_polls() 
     data = request.json
-    poll_id, user_id, response, reason = data.get("poll_id"), data.get("user_id"), data.get("response"), data.get("reason","").strip()
-    if not poll_id or not user_id or response not in ["yes","no"]:
-        return jsonify({"error":"Invalid data"}),400
+    poll_id, user_id, resp, reason = data.get("poll_id"), data.get("user_id"), data.get("response"), data.get("reason","").strip()
     db = get_db()
     cursor = db.cursor()
     cursor.execute("SELECT * FROM votes WHERE poll_id=? AND user_id=?", (poll_id,user_id))
     if cursor.fetchone(): return jsonify({"error":"Already voted"}),400
-    cursor.execute("INSERT INTO votes (poll_id,user_id,response,reason) VALUES (?,?,?,?)",(poll_id,user_id,response,reason))
+    cursor.execute("INSERT INTO votes (poll_id,user_id,response,reason) VALUES (?,?,?,?)",(poll_id,user_id,resp,reason))
     db.commit()
     return jsonify({"message":"Vote submitted"})
 
@@ -225,14 +231,17 @@ def results(poll_id):
     db = get_db()
     cursor = db.cursor()
     cursor.execute("SELECT users.name, votes.response, votes.reason FROM votes JOIN users ON votes.user_id=users.id WHERE poll_id=?",(poll_id,))
-    data = cursor.fetchall()
-    return jsonify([dict(row) for row in data])
+    return jsonify([dict(row) for row in cursor.fetchall()])
+
+# ---------- NOTIFICATION TOKEN API ----------
 
 @app.route("/save-token", methods=["POST"])
 def save_token():
     data = request.json
     user_id = data.get("user_id")
     token = data.get("token")
+    if not user_id or not token:
+        return jsonify({"error":"Missing data"}),400
     db = get_db()
     cursor = db.cursor()
 
