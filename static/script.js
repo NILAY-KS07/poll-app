@@ -52,6 +52,62 @@ function goToPoll(){window.location.href="/poll";}
 function goToVote(){window.location.href="/vote-page";}
 function goToResult(){window.location.href="/result";}
 
+// ---------- NOTIFICATIONS & FIREBASE ----------
+
+function initNotifications(){
+  Notification.requestPermission().then(permission => {
+    if(permission === "granted"){
+      
+      messaging.getToken({ 
+        vapidKey: "BIhMsucb3v8gurKdJa-Cv_K5s7xNnynIWicCuTmRPNRvx0V1M_YTkL6_vR4LH6a2scj7OBsvzhamF2eiQFavYlA" 
+      })
+      .then(token => {
+        if (token) {
+          console.log("FCM TOKEN:", token);
+          sendTokenToServer(token);
+        } else {
+          console.log("No registration token available.");
+        }
+      })
+      .catch(err => console.log("Token error:", err));
+    } else {
+      console.warn("Notification permission denied.");
+    }
+  });
+}
+
+function sendTokenToServer(token) {
+  const user_id = localStorage.getItem("user_id");
+  if(!user_id) return;
+
+  fetch(base_url + "/save-token", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      user_id: user_id,
+      token: token
+    })
+  })
+  .then(res => res.json())
+  .then(data => console.log("Token saved to server:", data))
+  .catch(err => console.error("Error saving token:", err));
+}
+
+
+function triggerPushBroadcast(pollTitle) {
+  fetch(base_url + "/send-notifications", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ 
+        title: "New Poll!", 
+        body: `Your friend started a poll: ${pollTitle}` 
+    })
+  })
+  .then(r => r.json())
+  .then(d => console.log("Broadcast status:", d))
+  .catch(e => console.error("Broadcast failed:", e));
+}
+
 // ---------- CREATE POLL ----------
 
 function createPoll(){
@@ -78,7 +134,10 @@ function createPoll(){
       return;
     }
 
-    alert("Poll created");
+    
+    triggerPushBroadcast(purpose);
+
+    alert("Poll created and notifications sent!");
     window.location.href="/dashboard";
   })
   .catch(()=>alert("Server error"));
@@ -92,15 +151,12 @@ function loadPoll(){
   fetch(base_url+"/active-poll")
   .then(r=>r.json())
   .then(p=>{
-    
     if(!p || !p.id){
       alert("No active poll");
       window.location.href="/dashboard";
       return;
     }
-
     currentPoll=p;
-
     document.getElementById("poll-title").innerHTML=p.purpose;
     document.getElementById("poll-desc").innerHTML=p.description;
   })
@@ -111,7 +167,6 @@ function loadPoll(){
 
 function vote(type){
   let reason="";
-
   if(type==="no"){
     reason=prompt("Reason?");
     if(!reason){
@@ -136,14 +191,11 @@ function vote(type){
       alert(d.error);
       return;
     }
-
     alert("Vote done");
     window.location.href="/dashboard";
   })
   .catch(()=>alert("Server error"));
 }
-
-
 
 function loadResults(){
   fetch(base_url+"/active-poll")
@@ -153,48 +205,21 @@ function loadResults(){
       alert("No active poll");
       return;
     }
-
     fetch(base_url+"/results/"+p.id)
     .then(r=>r.json())
     .then(data=>{
       const container=document.getElementById("results");
       container.innerHTML="";
-
       data.forEach(v=>{
         const div=document.createElement("div");
-
-        
         div.innerHTML = `
           <p><strong>${v.name}</strong> voted: ${v.response}</p>
           <p>${v.reason ? "Reason: "+v.reason : ""}</p>
           <hr>
         `;
-
         container.appendChild(div);
       });
     });
   })
   .catch(()=>alert("Server error"));
-}
-function initNotifications(){
-  Notification.requestPermission().then(permission=>{
-    if(permission==="granted"){
-      messaging.getToken({ vapidKey: "BIhMsucb3v8gurKdJa-Cv_K5s7xNnynIWicCuTmRPNRvx0V1M_YTkL6_vR4LH6a2scj7OBsvzhamF2eiQFavYlA" })
-      .then(token=>{
-        console.log("TOKEN:", token);
-
-        fetch(base_url+"/save-token",{
-          method:"POST",
-          headers:{"Content-Type":"application/json"},
-          body:JSON.stringify({
-            user_id: localStorage.getItem("user_id"),
-            token: token
-          })
-        });
-      })
-      .catch(err=>{
-        console.log("Token error:", err);
-      });
-    }
-  });
 }
