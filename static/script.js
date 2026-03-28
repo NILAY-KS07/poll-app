@@ -179,7 +179,7 @@ function loadResults(){
 function initNotifications(){
   Notification.requestPermission().then(permission=>{
     if(permission==="granted"){
-      messaging.getToken({ vapidKey: "YOUR_VAPID_KEY" })
+      messaging.getToken({ vapidKey: "BIhMsucb3v8gurKdJa-Cv_K5s7xNnynIWicCuTmRPNRvx0V1M_YTkL6_vR4LH6a2scj7OBsvzhamF2eiQFavYlA" })
       .then(token=>{
         console.log("TOKEN:", token);
 
