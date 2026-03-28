@@ -1,5 +1,17 @@
-self.addEventListener('push', e => {const data = e.data.json();self.registration.showNotification(data.title, {
-  body: data.body,
-  icon: '/icon.png'
+self.addEventListener('push', function(event) {
+  if (event.data) {
+    const data = event.data.json();
+    const options = {
+      body: data.body,
+      icon: 'https://cdn-icons-png.flaticon.com/512/5968/5968756.png', // Using a web icon for testing
+      vibrate: [100, 50, 100],
+      data: {
+        dateOfArrival: Date.now(),
+        primaryKey: '2'
+      }
+    };
+    event.waitUntil(
+      self.registration.showNotification(data.title, options)
+    );
+  }
 });
-                                   });
