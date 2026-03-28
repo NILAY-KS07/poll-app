@@ -176,3 +176,25 @@ function loadResults(){
   })
   .catch(()=>alert("Server error"));
 }
+function initNotifications(){
+  Notification.requestPermission().then(permission=>{
+    if(permission==="granted"){
+      messaging.getToken({ vapidKey: "YOUR_VAPID_KEY" })
+      .then(token=>{
+        console.log("TOKEN:", token);
+
+        fetch(base_url+"/save-token",{
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({
+            user_id: localStorage.getItem("user_id"),
+            token: token
+          })
+        });
+      })
+      .catch(err=>{
+        console.log("Token error:", err);
+      });
+    }
+  });
+}
