@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="container">
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+<script>checkAuth();loadPoll();</script>
+  <h2 id="poll-title"></h2>
+  <p id="poll-desc"></p>
+
+  <button onclick="vote('yes')">YES</button>
+  <button onclick="vote('no')">NO</button>
+</div>
+
+
+</body>
+</html>

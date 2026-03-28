@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container">
+<h2>Create Poll</h2>
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+<script>checkAuth();</script>
+<input id="purpose" placeholder="Purpose">
+<input id="venue" placeholder="Venue">
+<textarea id="description"></textarea>
+<button onclick="createPoll()">Start</button>
+</div>
+</body>
+</html>

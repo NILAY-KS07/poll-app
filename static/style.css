@@ -1,0 +1,97 @@
+body {
+  font-family: 'Segoe UI';
+  background: linear-gradient(135deg,#0f172a,#1e293b);
+  color: white;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
+
+.container {
+  background: rgba(30,41,59,0.9);
+  padding:25px;
+  border-radius:15px;
+  width:340px;
+  text-align:center;
+}
+
+input,textarea {
+  width:80%;
+  margin:8px 0;
+  padding:10px;
+  border:none;
+  border-radius:5px;
+}
+
+button {
+  width:80%;
+  padding:10px;
+  margin-top:10px;
+  background:#38bdf8;
+  border:none;
+  border-radius:5px;
+  cursor:pointer;
+  transition:0.3s;
+}
+
+button:hover {
+  transform:scale(1.05);
+}
+
+* {
+    box-sizing: border-box;
+}
+
+
+body {
+    margin: 0;
+    padding: 10px;
+    font-family: Arial, sans-serif;
+}
+
+
+.container {
+    width: 100%;
+    max-width: 800px;
+    margin: auto;
+}
+
+
+form {
+    width: 100%;
+}
+
+
+input, textarea, button {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0;
+    font-size: 16px;
+}
+
+
+button {
+    cursor: pointer;
+}
+a{
+color:white;
+text-decoration:none;
+}
+
+@media (max-width: 600px) {
+
+    body {
+        padding: 8px;
+    }
+
+    h1 {
+        font-size: 20px;
+        text-align: center;
+    }
+
+    button {
+        padding: 12px;
+        font-size: 16px;
+    }
+}

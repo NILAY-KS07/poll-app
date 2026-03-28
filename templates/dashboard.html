@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container">
+<h2>Dashboard</h2>
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+<script>checkAuth();</script>
+<button onclick="goToPoll()">Start Poll</button>
+<button onclick="goToVote()">Vote</button>
+<button onclick="goToResult()">Results</button>
+</div>
+</body>
+</html>
