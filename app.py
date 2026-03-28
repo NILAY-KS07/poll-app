@@ -2,6 +2,35 @@ from flask import Flask, request, jsonify, render_template, g
 from flask_cors import CORS
 import sqlite3
 from datetime import datetime, timedelta
+import firebase_admin
+from firebase_admin import credentials, messaging
+
+cred = credentials.Certificate("firebase-key.json")
+firebase_admin.initialize_app(cred)
+
+#---------Notification Logic--------
+
+def send_notification(title, body):
+    db = get_db()
+    cursor = db.cursor()
+
+    cursor.execute("SELECT token FROM tokens")
+    rows = cursor.fetchall()
+
+    tokens = [row["token"] for row in rows if row["token"]]
+
+    for token in tokens:
+        try:
+            message = messaging.Message(
+                notification=messaging.Notification(
+                    title=title,
+                    body=body,
+                ),
+                token=token,
+            )
+            messaging.send(message)
+        except Exception as e:
+            print("Notification error:", e)
 
 app = Flask(__name__)
 CORS(app)
@@ -57,6 +86,14 @@ def init_db():
         reason TEXT
     )
     """)
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS tokens (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER,
+        token TEXT
+        )
+        """)
 
     db.commit()
     db.close()
@@ -183,6 +220,7 @@ def create_poll():
     db.commit()
 
     return jsonify({"message":"Poll created"})
+    send_notification("New Poll Live!", purpose)
 
 @app.route("/active-poll")
 def active_poll():
@@ -246,6 +284,24 @@ def results(poll_id):
     data = cursor.fetchall()
 
     return jsonify([dict(row) for row in data])
+
+@app.route("/save-token", methods=["POST"])
+def save_token():
+    data = request.json
+    user_id = data.get("user_id")
+    token = data.get("token")
+
+    db = get_db()
+    cursor = db.cursor()
+
+    cursor.execute("""
+    INSERT INTO tokens (user_id, token)
+    VALUES (?,?)
+    """,(user_id,token))
+
+    db.commit()
+
+    return jsonify({"message":"Now you will receive poll related notifications!"})
 
 # ---------- RUN ----------
 
