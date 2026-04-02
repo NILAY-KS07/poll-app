@@ -57,16 +57,15 @@
             });
         }
 
-        // Service Worker Registration
+  
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register("/firebase-messaging-sw.js")
                 .then((reg) => {
                     console.log("SW Registered.");
-                    // Check if we already have permission
                     if (Notification.permission === 'default') {
                         document.getElementById("notif-trigger").style.display = "block";
                     } else if (Notification.permission === 'granted') {
-                        initNotifications(); // Refresh token
+                        initNotifications(); 
                     }
                 });
         }
@@ -79,6 +78,7 @@
         <button id="notif-trigger" class="notif-btn" onclick="initNotifications()">
             Enable Notifications!
         </button>
+        <br>
 
         <div class="button-group">
             <button onclick="window.location.href='/poll'">Create New Poll</button>
@@ -86,14 +86,12 @@
             <button onclick="window.location.href='/result'">View Results</button>
         </div>
         
-        <p id="status-msg"></p>
         
         <a href="/" onclick="localStorage.clear()" style="display:block; margin-top:20px; color:#94a3b8; font-size:14px;">Logout</a>
     </div>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
     <script>
-        // Ensure user is logged in
         if (typeof checkAuth === "function") { checkAuth(); }
     </script>
 </body>
