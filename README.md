@@ -96,7 +96,7 @@ This project represents over \*\*35+ hours\*\* of intensive development. My goal
 
 &#x20;  ```bash
 
-&#x20;  git clone \[https://github.com/NILAY-KS07/poll-app.git](https://github.com/NILAY-KS07/poll-app.git)
+&#x20;  git clone \https://github.com/NILAY-KS07/poll-app.git
 
 &#x20;  ```
 
