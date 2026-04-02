@@ -41,7 +41,7 @@
             .then(data => {
                 console.log("Server response:", data);
                 if(data.success) {
-                    document.getElementById("status-msg").innerText = "Notifications Enabled! 🔔";
+                    document.getElementById("status-msg").innerText = "";
                 }
             })
             .catch(err => console.error("Error saving token:", err));
