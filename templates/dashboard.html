@@ -1,15 +1,15 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Poll App</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
-    
-    <script>
 
+    <script>
         const firebaseConfig = {
             apiKey: "AIzaSyAoAti_pMh-keTxz3-UCYt3LrOljkvp9to",
             authDomain: "poll-app-bfe92.firebaseapp.com",
@@ -23,75 +23,78 @@
         firebase.initializeApp(firebaseConfig);
         const messaging = firebase.messaging();
 
-
         function sendTokenToServer(token) {
             const user_id = localStorage.getItem("user_id");
             if(!user_id || user_id === "null") return;
 
-            console.log("Saving token for user:", user_id);
             fetch("/save-token", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    user_id: user_id,
-                    token: token
-                })
+                body: JSON.stringify({ user_id: user_id, token: token })
             })
             .then(res => res.json())
             .then(data => {
-                console.log("Server response:", data);
                 if(data.success) {
-                    document.getElementById("status-msg").innerText = "";
+                    document.getElementById("status-msg").innerText = "Notifications Synced ✅";
+                    document.getElementById("notif-trigger").style.display = "none";
                 }
             })
             .catch(err => console.error("Error saving token:", err));
         }
 
         function initNotifications() {
-            const userId = localStorage.getItem("user_id");
-            if (!userId || userId === "null") return;
-
             Notification.requestPermission().then((permission) => {
                 if (permission === 'granted') {
-                    console.log('Permission granted. Getting token...');
                     messaging.getToken({ 
                         vapidKey: 'BIhMsucb3v8gurKdJa-Cv_K5s7xNnynIWicCuTmRPNRvx0V1M_YTkL6_vR4LH6a2scj7OBsvzhamF2eiQFavYlA' 
                     })
-                    .then((currentToken) => {
-                        if (currentToken) {
-                            sendTokenToServer(currentToken);
-                        }
-                    }).catch((err) => console.log('Token Error:', err));
+                    .then((token) => {
+                        if (token) sendTokenToServer(token);
+                    }).catch(err => console.error("Token error:", err));
+                } else {
+                    alert("Please allow notifications in settings to get poll alerts!");
                 }
             });
         }
 
-
+        // Service Worker Registration
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register("/firebase-messaging-sw.js")
-                .then((registration) => {
+                .then((reg) => {
                     console.log("SW Registered.");
-                    initNotifications(); 
-                }).catch((err) => console.error("SW Registration Failed:", err));
+                    // Check if we already have permission
+                    if (Notification.permission === 'default') {
+                        document.getElementById("notif-trigger").style.display = "block";
+                    } else if (Notification.permission === 'granted') {
+                        initNotifications(); // Refresh token
+                    }
+                });
         }
     </script>
 </head>
 <body>
     <div class="container">
         <h2>Dashboard</h2>
+        
+        <button id="notif-trigger" class="notif-btn" onclick="initNotifications()">
+            Enable Notifications!
+        </button>
+
         <div class="button-group">
-            <button onclick="goToPoll()">Start Poll</button>
-            <button onclick="goToVote()">Vote</button>
-            <button onclick="goToResult()">Results</button>
+            <button onclick="window.location.href='/poll'">Create New Poll</button>
+            <button onclick="window.location.href='/vote'">Vote Now</button>
+            <button onclick="window.location.href='/result'">View Results</button>
         </div>
-        <p id="status-msg" style="font-size: 0.8em; color: #4CAF50; margin-top: 20px;"></p>
+        
+        <p id="status-msg"></p>
+        
+        <a href="/" onclick="localStorage.clear()" style="display:block; margin-top:20px; color:#94a3b8; font-size:14px;">Logout</a>
     </div>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
     <script>
-        if (typeof checkAuth === "function") {
-            checkAuth();
-        }
+        // Ensure user is logged in
+        if (typeof checkAuth === "function") { checkAuth(); }
     </script>
 </body>
 </html>
