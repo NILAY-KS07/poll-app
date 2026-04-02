@@ -1,4 +1,4 @@
-\# 🗳️ Real-Time Poll App with Web Push Notifications
+\# Real-Time Poll App with Web Push Notifications
 
 
 
@@ -10,13 +10,13 @@ A modern, full-stack voting application featuring real-time \*\*Firebase Cloud M
 
 
 
-\##Project Journey \& Learning
+\## Project Journey \& Learning
 
 This project represents over \*\*35+ hours\*\* of intensive development. My goal was to move beyond simple static sites and master the complexities of \*\*asynchronous communication\*\* and \*\*cloud-based messaging\*\*.
 
 
 
-\###Key Challenges Overcome:
+\### Key Challenges Overcome:
 
 \* \*\*The Notification Hurdle:\*\* Spent 7 days mastering \*\*Firebase Cloud Messaging\*\*. I learned to manage Service Workers, VAPID keys, and browser security restrictions to ensure reliable delivery on both Desktop and Android.
 
@@ -30,7 +30,7 @@ This project represents over \*\*35+ hours\*\* of intensive development. My goal
 
 
 
-\##Core Features
+\## Core Features
 
 \* \*\*Push Notifications:\*\* Instant alerts sent to subscribed devices whenever a new poll is created.
 
@@ -46,7 +46,7 @@ This project represents over \*\*35+ hours\*\* of intensive development. My goal
 
 
 
-\##Tech Stack
+\## Tech Stack
 
 \* \*\*Backend:\*\* Python (Flask)
 
@@ -64,7 +64,7 @@ This project represents over \*\*35+ hours\*\* of intensive development. My goal
 
 
 
-\##System Architecture
+\## System Architecture
 
 1\. \*\*Client-Side:\*\* Registers a \*\*Service Worker\*\* to handle background push events.
 
@@ -78,7 +78,7 @@ This project represents over \*\*35+ hours\*\* of intensive development. My goal
 
 
 
-\##Architectural Note
+\## Architectural Note
 
 \*\*Database Persistence:\*\* This app is hosted on \*\*Render's Free Tier\*\*, which uses an ephemeral file system. While the SQLite database handles local logic perfectly, the data resets when the server spins down. 
 
@@ -90,13 +90,15 @@ This project represents over \*\*35+ hours\*\* of intensive development. My goal
 
 
 
-\##Installation
+\## Installation
 
 1\. Clone the repository:
 
 &#x20;  ```bash
 
-&#x20;  git clone \[https://github.com/NILAY-KS07/poll-app.git](https://github.com/NILAY-KS07/poll-app.git)```
+&#x20;  git clone \[https://github.com/NILAY-KS07/poll-app.git](https://github.com/NILAY-KS07/poll-app.git)
+
+&#x20;  ```
 
 
 
@@ -104,7 +106,9 @@ This project represents over \*\*35+ hours\*\* of intensive development. My goal
 
 &#x20;  ```bash
 
-&#x20;  pip install -r requirements.txt```
+&#x20;  pip install -r requirements.txt
+
+&#x20;  ```
 
 
 
@@ -118,13 +122,15 @@ This project represents over \*\*35+ hours\*\* of intensive development. My goal
 
 &#x20;  python app.py
 
+&#x20;  ```
 
 
-\##Made By:
+
+\## Made By:
 
 \*\*Nilay Kumar Shrivastava\*\*
 
 
 
-\##Thankyou
+\### Thankyou
 
