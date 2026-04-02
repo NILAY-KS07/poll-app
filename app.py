@@ -281,6 +281,8 @@ def save_token():
         print(f"Database Error in save_token: {e}")
         return jsonify({"error": "Internal server error"}), 500
 
-if __name__ == "__main__":
+with app.app_context():
     init_db()
+
+if __name__ == "__main__":
     app.run(debug=True)
