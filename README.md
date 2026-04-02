@@ -83,6 +83,6 @@ python app.py
 Nilay Kumar Shrivastava
 
 ## Important:
-- All the API Keys, VAPID, AppID, ProjectID, AuthDomain etc. are public and accesible, though I could have hid them behind environment variables, but none of my data is at risk, Im not handling production level app. Though its accesible, I would never give consent to still copy them, or use for ill purposes. For now, this is just a prototype project meant for learning, experiment and testing.
+- All the **API Keys, VAPID, AppID, ProjectID, AuthDomain etc.** are **public and accesible**, though I could have hid them behind environment variables, but **none of my data is at risk**, Im not handling production level app. Though its accesible, using them for malicious purposes or ill intent is **prohibited**. For now, this is just a **prototype project** meant for learning, experiment and testing and these details are left exposed knowing the purpose of the app.
 
 ## Thank You
