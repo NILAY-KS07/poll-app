@@ -79,7 +79,11 @@ a:hover {
     color: white;
 }
 
-
+input{
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+}
 @media (max-width: 600px) {
     .container {
         width: 95%;
