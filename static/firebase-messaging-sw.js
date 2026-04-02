@@ -24,7 +24,7 @@ self.addEventListener('push', function(event) {
             vibrate: [200, 100, 200],
             badge: 'https://cdn-icons-png.flaticon.com/512/5968/5968756.png',
             data: {
-                click_action: '/dashboard' // Redirects user when they click
+                click_action: '/dashboard' 
             }
         };
 
