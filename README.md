@@ -83,6 +83,10 @@ python app.py
 Nilay Kumar Shrivastava
 
 ## Important:
-- All the **API Keys, VAPID, AppID, ProjectID, AuthDomain etc.** are **public and accesible**, though I could have hid them behind environment variables, but **none of my data is at risk**, Im not handling production level app. Though its accesible, using them for malicious purposes or ill intent is **prohibited**. For now, this is just a **prototype project** meant for learning, experiment and testing and these details are left exposed knowing the purpose of the app.
+- This project is a **prototype** built for learning and experimentation.
+
+Certain configuration values (API keys, VAPID keys, Firebase identifiers) are **intentionally** included for simplicity and demonstration purposes. These are **not** associated with any sensitive or production data.
+
+This project is **not intended for production use**. In a real-world deployment, all credentials should be secured using environment variables and proper access controls.
 
 ## Thank You
