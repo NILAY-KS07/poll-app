@@ -6,12 +6,12 @@ A modern, full-stack voting application featuring real-time **Firebase Cloud Mes
 
 ## Project Journey & Learning
 
-This project represents over **35+ hours** of intensive development. My goal was to move beyond simple static sites and master the complexities of **asynchronous communication** and **cloud-based messaging**.
+This project represents over **20+ hours** of intensive development. My goal was to move beyond simple static sites and master the complexities of **asynchronous communication** and **cloud-based messaging**.
 
 ### Key Challenges Overcome
 
 - **The Notification Hurdle:**  
-  Spent 7 days mastering **Firebase Cloud Messaging**. Learned to manage Service Workers, VAPID keys, and browser security restrictions to ensure reliable delivery on both Desktop and Android.
+  Spent 4 days+ mastering **Firebase Cloud Messaging**. Learned to manage Service Workers, VAPID keys, and browser security restrictions to ensure reliable delivery on both Desktop and Android.
 
 - **Full-Stack Logic:**  
   Designed the complete data flow — from user authentication to database relationships (SQL) and real-time frontend updates.
@@ -54,7 +54,7 @@ This project represents over **35+ hours** of intensive development. My goal was
 This app is hosted on **Render's Free Tier**, which uses an ephemeral file system. While SQLite works perfectly for local logic, the data resets when the server spins down.
 
 - **Future Scaling:**  
-  A production-ready version would migrate to a persistent cloud database like **MongoDB Atlas** or **PostgreSQL**
+  A production-ready version would migrate to a persistent cloud database like **MongoDB Atlas** or **PostgreSQL**, but no plans right now.
 
 ---
 
