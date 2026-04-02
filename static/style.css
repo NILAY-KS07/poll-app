@@ -78,10 +78,96 @@ textarea {
     padding: 12px;
     border-radius: 8px;
 }
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 20px;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.container {
+    background: rgba(30, 41, 59, 0.9);
+    padding: 40px 30px;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+h2 {
+    margin-bottom: 25px;
+    font-weight: 600;
+    color: #38bdf8;
+}
+
+.button-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+button {
+    width: 100%;
+    padding: 12px;
+    background: #38bdf8;
+    color: #0f172a;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s;
+}
+
+button:hover {
+    background: #7dd3fc;
+    transform: translateY(-2px);
+}
+
+
+.notif-btn {
+    background: #f59e0b;
+    color: white;
+    margin-bottom: 15px;
+    display: none; 
+}
+
+.notif-btn:hover {
+    background: #fbbf24;
+}
+
+a {
+    color: #94a3b8;
+    text-decoration: none;
+    font-size: 14px;
+    margin-top: 20px;
+    display: inline-block;
+}
+
+a:hover {
+    color: white;
+}
+
+
 @media (max-width: 600px) {
     .container {
         width: 95%;
         padding: 30px 20px;
     }
 
-
+    .notif-btn {
+        display: block; 
+    }
+}
