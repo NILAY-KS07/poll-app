@@ -59,7 +59,7 @@ def send_notification(title, body):
             tokens=tokens,
         )
         
-        response = messaging.send_multicast(message)
+        response = messaging.send_each_for_multicast(message)
         print(f"Successfully sent {response.success_count} notifications.")
     except Exception as e:
         print(f"FCM Error: {e}")
