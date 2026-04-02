@@ -1,17 +1,97 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Poll App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAoAti_pMh-keTxz3-UCYt3LrOljkvp9to",
+            authDomain: "poll-app-bfe92.firebaseapp.com",
+            projectId: "poll-app-bfe92",
+            storageBucket: "poll-app-bfe92.firebasestorage.app",
+            messagingSenderId: "1041150842496",
+            appId: "1:1041150842496:web:c430f58cbd82ddf4d23865",
+            measurementId: "G-W39CZ4Y67E"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const messaging = firebase.messaging();
+
+        function sendTokenToServer(token) {
+            const user_id = localStorage.getItem("user_id");
+            if(!user_id || user_id === "null") return;
+
+            fetch("/save-token", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ user_id: user_id, token: token })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    document.getElementById("notif-trigger").style.display = "none";
+                }
+            })
+            .catch(err => console.error("Error saving token:", err));
+        }
+
+        function initNotifications() {
+            Notification.requestPermission().then((permission) => {
+                if (permission === 'granted') {
+                    messaging.getToken({ 
+                        vapidKey: 'BIhMsucb3v8gurKdJa-Cv_K5s7xNnynIWicCuTmRPNRvx0V1M_YTkL6_vR4LH6a2scj7OBsvzhamF2eiQFavYlA' 
+                    })
+                    .then((token) => {
+                        if (token) sendTokenToServer(token);
+                    }).catch(err => console.error("Token error:", err));
+                } else {
+                    alert("Please allow notifications in settings to get poll alerts!");
+                }
+            });
+        }
+
+  
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register("/firebase-messaging-sw.js")
+                .then((reg) => {
+                    console.log("SW Registered.");
+                    if (Notification.permission === 'default') {
+                        document.getElementById("notif-trigger").style.display = "block";
+                    } else if (Notification.permission === 'granted') {
+                        initNotifications(); 
+                    }
+                });
+        }
+    </script>
 </head>
 <body>
-<div class="container">
-<h2>Dashboard</h2>
-<script src="{{ url_for('static', filename='script.js') }}"></script>
-<script>checkAuth();</script>
-<button onclick="goToPoll()">Start Poll</button>
-<button onclick="goToVote()">Vote</button>
-<button onclick="goToResult()">Results</button>
-</div>
+    <div class="container">
+        <h2>Dashboard</h2>
+        
+        <button id="notif-trigger" class="notif-btn" onclick="initNotifications()">
+            Enable Notifications!
+        </button>
+        <br><br>
+
+        <div class="button-group">
+            <button onclick="window.location.href='/poll'">Create New Poll</button>
+            <button onclick="window.location.href='/vote-page'">Vote Now</button>
+            <button onclick="window.location.href='/result'">View Results</button>
+        </div>
+        
+        
+        <a href="/" onclick="localStorage.clear()" style="display:block; margin-top:20px; color:#94a3b8; font-size:14px;">Logout</a>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+        if (typeof checkAuth === "function") { checkAuth(); }
+    </script>
 </body>
 </html>
